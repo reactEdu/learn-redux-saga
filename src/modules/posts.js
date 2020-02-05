@@ -1,6 +1,6 @@
 import * as postsAPI from '../api/posts';
 import { reducerUtils, handleAsyncActions, handleAsyncActionsById, createPromiseSagaById } from '../lib/asyncUtils';
-import { takeEvery, getContext } from 'redux-saga/effects'
+import { takeEvery, getContext, select } from 'redux-saga/effects'
 import { createPromiseSaga } from './../lib/asyncUtils';
 
 const GET_POSTS = 'GET_POSTS';
@@ -13,21 +13,25 @@ const GET_POST_ERROR = 'GET_POST_ERROR';
 
 const CLEAR_POST = 'CLEAR_POST'; // 기존 데이터 잠깐 보이는 것 해결을 위한 액션
 const GO_TO_HOME = 'GO_TO_HOME';
-
+const PRINT_STATE = 'PRINT_STATE';
 
 // 액션생성 함수
 export const getPosts = () => ({ type: GET_POSTS });
 export const getPost = (id) => ({ type: GET_POST, payload:id, meta: id });
 export const clearPost = () => ({ type: CLEAR_POST});
 export const goToHome = () => ({ type: GO_TO_HOME});
+export const printState = () => ({ type: PRINT_STATE});
 
 // 사가함수
 const getPostsSaga = createPromiseSaga(GET_POSTS, postsAPI.getPosts);
 const getPostSaga = createPromiseSagaById(GET_POST, postsAPI.getPostById);
-
 function* goToHomeSaga() {
   const history = yield getContext('history');
   history.push('/');
+}
+function* printStateSaga() {
+  const state = yield select(state => state.posts);
+  console.log(state)
 }
 
 // watch 함수
@@ -35,6 +39,7 @@ export function* postsSaga(){
   yield takeEvery(GET_POSTS, getPostsSaga);
   yield takeEvery(GET_POST, getPostSaga);
   yield takeEvery(GO_TO_HOME, goToHomeSaga);
+  yield takeEvery(PRINT_STATE, printStateSaga);
 }
 
 const initialState = {

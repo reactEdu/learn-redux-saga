@@ -2,7 +2,7 @@ import React from 'react';
 import Post from '../components/Post';
 import { useSelector, useDispatch } from 'react-redux';
 import { useEffect } from 'react';
-import { getPost, clearPost, goToHome } from '../modules/posts';
+import { getPost, clearPost, goToHome, printState } from '../modules/posts';
 import { reducerUtils } from './../lib/asyncUtils';
 
 const PostContainer = ({ postId }) => {
@@ -23,6 +23,7 @@ const PostContainer = ({ postId }) => {
   return (
     <>
       <button onClick={() => dispatch(goToHome())}>Home</button>
+      <button onClick={() => dispatch(printState())}>상태출력</button>
       <Post post={data} />
     </>
   );
