@@ -80,3 +80,45 @@ export function* rootSaga() {
   yield all([counterSaga(), postsSaga()]);
 }
 ```
+
+##  redux-saga 프로미스 관련 saga 리팩토링
+- createPromiseSaga,createPromiseSagaByid 유틸함수로 분리
+
+```javascript
+export const createPromiseSaga= (type, promiseCreator) =>{
+  const [SUCCESS, ERROR] = [`${type}_SUCCESS`,`${type}_ERROR`];
+
+  return function* saga(action) {
+    try {
+      const payload = yield call(promiseCreator, action.payload);
+      yield put({ type: SUCCESS, payload });
+    } catch (e) {
+      yield put({ type: ERROR, payload: e, error: true });
+    }
+  }
+}
+
+// idSelector가 필요없음: action을 dispatch할때 id를 meta에 넣으면 됨
+export const createPromiseSagaById= (type, promiseCreator) =>{
+  const [SUCCESS, ERROR] = [`${type}_SUCCESS`,`${type}_ERROR`];
+
+  return function* saga(action) {
+    const id = action.meta;
+    try {
+      const payload = yield call(promiseCreator, action.payload);
+      yield put({ type: SUCCESS, payload, meta: id });
+    } catch (e) {
+      yield put({ type: ERROR, payload: e, error: true, meta: id });
+    }
+  }
+}
+
+```
+
+- 모듈의 사가함수에 방금 만든 유틸함수 적용
+
+```javascript
+// 사가함수
+const getPostsSaga = createPromiseSaga(GET_POSTS, postsAPI.getPosts);
+const getPostSaga = createPromiseSagaById(GET_POST, postsAPI.getPostById);
+```
