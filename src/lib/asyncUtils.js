@@ -1,37 +1,29 @@
-// thunk 함수 반환
-export const createPromiseThunk= (type, promiseCreator) =>{
+import { call, put } from 'redux-saga/effects';
+
+export const createPromiseSaga= (type, promiseCreator) =>{
   const [SUCCESS, ERROR] = [`${type}_SUCCESS`,`${type}_ERROR`];
 
-  const thunkCreator = param => async dispatch => {
-    // 요청 시작
-    dispatch({ type });
+  return function* saga(action) {
     try {
-      // API 호출
-      const payload = await promiseCreator(param);
-      // 성공했을 때
-      dispatch({ type: SUCCESS, payload });
+      const payload = yield call(promiseCreator, action.payload);
+      yield put({ type: SUCCESS, payload });
     } catch (e) {
-      // 실패했을 때
-      dispatch({ type: ERROR, payload: e, error: true });
+      yield put({ type: ERROR, payload: e, error: true });
     }
   }
+}
 
-  return thunkCreator;
-};
-
-// id로 매칭하는 thunk 함수 반환
-const defaultIdSelector = param => param; // id가 아닌 값도 param으로 처리하는 것을 위해 생성
-export const createPromiseThunkByid= (type, promiseCreator, idSelector=defaultIdSelector) =>{
+// idSelector가 필요없음: action을 dispatch할때 id를 meta에 넣으면 됨
+export const createPromiseSagaById= (type, promiseCreator) =>{
   const [SUCCESS, ERROR] = [`${type}_SUCCESS`,`${type}_ERROR`];
 
-  return param => async dispatch => {
-    const id = idSelector(param);
-    dispatch({ type, meta: id });
+  return function* saga(action) {
+    const id = action.meta;
     try {
-      const payload = await promiseCreator(param);
-      dispatch({ type: SUCCESS, payload, meta: id });
+      const payload = yield call(promiseCreator, action.payload);
+      yield put({ type: SUCCESS, payload, meta: id });
     } catch (e) {
-      dispatch({ type: ERROR, payload: e, error: true, meta: id });
+      yield put({ type: ERROR, payload: e, error: true, meta: id });
     }
   }
 }
